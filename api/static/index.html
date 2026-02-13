@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Disease Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #764ba2;
+            background: #f0f0ff;
+            transform: scale(1.02);
+        }
+
+        .drop-zone-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-section {
+            padding: 30px;
+            display: none;
+        }
+
+        .preview-section.active {
+            display: block;
+        }
+
+        .preview-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .image-preview {
+            flex: 1;
+            min-width: 280px;
+            max-width: 400px;
+        }
+
+        .image-preview img {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .image-preview h4 {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+
+        .results-panel {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .result-card .confidence {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .result-card .description {
+            margin-top: 15px;
+            opacity: 0.9;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .severity-critical { background: #ff4757; }
+        .severity-high { background: #ff6b35; }
+        .severity-medium { background: #ffa502; }
+        .severity-low { background: #2ed573; }
+
+        .all-predictions {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .all-predictions h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .prediction-bar {
+            margin-bottom: 12px;
+        }
+
+        .prediction-bar .label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .prediction-bar .bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .prediction-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .disclaimer {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+
+        .disclaimer strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            .upload-section, .preview-section {
+                padding: 20px;
+            }
+            .drop-zone {
+                padding: 40px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Skin Disease Detection</h1>
+            <p>AI-powered skin lesion analysis using deep learning</p>
+        </header>
+
+        <div class="card">
+            <div class="upload-section" id="uploadSection">
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-icon">📷</div>
+                    <h3>Drop your image here</h3>
+                    <p>or click to browse (JPG, PNG supported)</p>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing image...</p>
+            </div>
+
+            <div class="preview-section" id="previewSection">
+                <div class="preview-container">
+                    <div class="image-preview">
+                        <img id="previewImage" src="" alt="Preview">
+                        <h4>Uploaded Image</h4>
+                    </div>
+                    <div class="image-preview" id="gradcamContainer" style="display:none;">
+                        <img id="gradcamImage" src="" alt="Grad-CAM">
+                        <h4>AI Focus Area (Grad-CAM)</h4>
+                    </div>
+                </div>
+
+                <div class="results-panel" id="resultsPanel">
+                    <div class="result-card">
+                        <h2 id="predictionClass">-</h2>
+                        <div class="confidence" id="predictionConfidence">-</div>
+                        <span class="severity-badge" id="severityBadge">-</span>
+                        <p class="description" id="predictionDescription"></p>
+                    </div>
+
+                    <div class="all-predictions">
+                        <h4>All Predictions</h4>
+                        <div id="predictionBars"></div>
+                    </div>
+
+                    <div class="disclaimer">
+                        <strong>⚠️ Medical Disclaimer</strong>
+                        This tool is for educational purposes only and is NOT a substitute for professional medical diagnosis. 
+                        Always consult a qualified dermatologist for skin concerns.
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" id="analyzeWithGradcam">Show AI Focus</button>
+                    <button class="btn btn-secondary" id="resetBtn">Upload New Image</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by EfficientNet-B0 • ISIC 2019 Dataset • PyTorch</p>
+        </footer>
+    </div>
+
+    <script>
+        const CLASS_INFO = {
+            'MEL': { name: 'Melanoma', severity: 'critical', description: 'A serious form of skin cancer. Immediate consultation with a dermatologist is strongly recommended.' },
+            'NV': { name: 'Melanocytic Nevus', severity: 'low', description: 'A common benign mole. Generally harmless but monitor for changes (ABCDE rule).' },
+            'BCC': { name: 'Basal Cell Carcinoma', severity: 'high', description: 'The most common type of skin cancer. Highly treatable when detected early.' },
+            'AK': { name: 'Actinic Keratosis', severity: 'medium', description: 'A precancerous skin condition caused by sun exposure. Should be monitored or treated.' },
+            'BKL': { name: 'Benign Keratosis', severity: 'low', description: 'A non-cancerous skin growth. Generally harmless and common with age.' },
+            'DF': { name: 'Dermatofibroma', severity: 'low', description: 'A benign skin nodule. Usually harmless and does not require treatment.' },
+            'VASC': { name: 'Vascular Lesion', severity: 'low', description: 'Blood vessel-related skin marking. Typically benign but can be evaluated if concerning.' },
+            'SCC': { name: 'Squamous Cell Carcinoma', severity: 'high', description: 'A common form of skin cancer. Early treatment leads to excellent outcomes.' }
+        };
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadSection = document.getElementById('uploadSection');
+        const previewSection = document.getElementById('previewSection');
+        const loading = document.getElementById('loading');
+        const previewImage = document.getElementById('previewImage');
+        const gradcamImage = document.getElementById('gradcamImage');
+        const gradcamContainer = document.getElementById('gradcamContainer');
+
+        let currentFile = null;
+
+        // Drag and drop handlers
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        async function handleFile(file) {
+            currentFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Hide upload, show loading
+            uploadSection.style.display = 'none';
+            loading.classList.add('active');
+            gradcamContainer.style.display = 'none';
+
+            // Make prediction
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error analyzing image. Please try again.');
+                resetUI();
+            }
+        }
+
+        function displayResults(result) {
+            loading.classList.remove('active');
+            previewSection.classList.add('active');
+
+            const topClass = result.predicted_class;
+            const info = CLASS_INFO[topClass];
+            const confidence = (result.confidence * 100).toFixed(1);
+
+            document.getElementById('predictionClass').textContent = info.name;
+            document.getElementById('predictionConfidence').textContent = confidence + '%';
+            document.getElementById('predictionDescription').textContent = info.description;
+
+            const badge = document.getElementById('severityBadge');
+            badge.textContent = info.severity.toUpperCase();
+            badge.className = 'severity-badge severity-' + info.severity;
+
+            // Display all predictions
+            const barsContainer = document.getElementById('predictionBars');
+            barsContainer.innerHTML = '';
+
+            // Sort by probability
+            const sorted = Object.entries(result.all_probabilities)
+                .sort((a, b) => b[1] - a[1]);
+
+            sorted.forEach(([cls, prob]) => {
+                const percentage = (prob * 100).toFixed(1);
+                const classInfo = CLASS_INFO[cls];
+                const bar = document.createElement('div');
+                bar.className = 'prediction-bar';
+                bar.innerHTML = `
+                    <div class="label">
+                        <span>${classInfo.name} (${cls})</span>
+                        <span>${percentage}%</span>
+                    </div>
+                    <div class="bar">
+                        <div class="fill" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                barsContainer.appendChild(bar);
+            });
+        }
+
+        document.getElementById('analyzeWithGradcam').addEventListener('click', async () => {
+            if (!currentFile) return;
+
+            const btn = document.getElementById('analyzeWithGradcam');
+            btn.textContent = 'Loading...';
+            btn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('file', currentFile);
+
+                const response = await fetch('/predict_with_gradcam', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.gradcam_image) {
+                    gradcamImage.src = 'data:image/png;base64,' + result.gradcam_image;
+                    gradcamContainer.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+            btn.textContent = 'Show AI Focus';
+            btn.disabled = false;
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', resetUI);
+
+        function resetUI() {
+            uploadSection.style.display = 'block';
+            previewSection.classList.remove('active');
+            loading.classList.remove('active');
+            gradcamContainer.style.display = 'none';
+            fileInput.value = '';
+            currentFile = null;
+        }
+    </script>
+</body>
+</html>

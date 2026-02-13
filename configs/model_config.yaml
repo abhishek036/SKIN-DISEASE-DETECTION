@@ -1,0 +1,185 @@
+# Model Configuration
+# Comprehensive Skin Disease Detection System
+
+# ============================================================================
+# MULTI-TASK MODEL ARCHITECTURE
+# ============================================================================
+
+model:
+  name: "EfficientNetB4"  # Upgraded for comprehensive detection
+  input_shape: [224, 224, 3]
+  pretrained_weights: "imagenet"
+  
+  # Available backbone models
+  available_backbones:
+    - EfficientNetB0   # 5.3M params - Fast inference
+    - EfficientNetB3   # 12M params - Balanced
+    - EfficientNetB4   # 19M params - Higher accuracy (recommended)
+    - ConvNeXtTiny     # 28M params - Modern architecture
+    - MobileNetV3Large # 5.4M params - Mobile deployment
+    - ResNet50         # 25M params - Classic baseline
+
+# ============================================================================
+# MULTI-HEAD CONFIGURATION
+# ============================================================================
+
+heads:
+  # Primary Head: Cancer/Lesion Detection (Core)
+  cancer_lesion:
+    enabled: true
+    num_classes: 8
+    dataset: "ISIC 2019"
+    loss_weight: 1.0
+    metrics: ["accuracy", "auc", "recall"]
+    class_names:
+      - "Melanoma"
+      - "Basal Cell Carcinoma"
+      - "Squamous Cell Carcinoma"
+      - "Actinic Keratosis"
+      - "Melanocytic Nevus"
+      - "Benign Keratosis"
+      - "Dermatofibroma"
+      - "Vascular Lesion"
+  
+  # Secondary Head: Inflammatory Conditions (Extended)
+  inflammatory:
+    enabled: true
+    num_classes: 7
+    dataset: "Fitzpatrick17k + DermNet"
+    loss_weight: 0.8
+    metrics: ["accuracy", "f1"]
+    class_names:
+      - "Acne - Mild"
+      - "Acne - Moderate"
+      - "Acne - Severe"
+      - "Eczema"
+      - "Psoriasis"
+      - "Rosacea"
+      - "Seborrheic Dermatitis"
+  
+  # Tertiary Head: Infectious Diseases (Extended)
+  infectious:
+    enabled: true
+    num_classes: 7
+    dataset: "Fitzpatrick17k + DermNet"
+    loss_weight: 0.7
+    metrics: ["accuracy", "f1"]
+    class_names:
+      - "Ringworm"
+      - "Tinea Versicolor"
+      - "Warts"
+      - "Herpes Simplex"
+      - "Impetigo"
+      - "Cellulitis"
+      - "Scabies"
+  
+  # Auxiliary Head: Skin Type Classification
+  skin_type:
+    enabled: true
+    num_classes: 6
+    dataset: "Fitzpatrick17k"
+    loss_weight: 0.5
+    metrics: ["accuracy"]
+    class_names:
+      - "Type I"
+      - "Type II"
+      - "Type III"
+      - "Type IV"
+      - "Type V"
+      - "Type VI"
+  
+  # Auxiliary Head: Severity Assessment
+  severity:
+    enabled: true
+    num_classes: 4
+    loss_weight: 0.4
+    metrics: ["accuracy", "mae"]
+    class_names:
+      - "None/Benign"
+      - "Mild"
+      - "Moderate"
+      - "Severe/Critical"
+
+architecture:
+  freeze_base: true  # Initially freeze pretrained layers
+  unfreeze_layers: 20  # Number of top layers to unfreeze during fine-tuning
+  
+  head:
+    global_pooling: "avg"  # avg or max
+    dense_units: [256]
+    dropout_rate: 0.3
+    activation: "relu"
+    output_activation: "softmax"
+
+training:
+  # Phase 1: Train head only
+  phase1:
+    epochs: 10
+    learning_rate: 0.001
+    freeze_base: true
+  
+  # Phase 2: Fine-tune
+  phase2:
+    epochs: 40
+    learning_rate: 0.0001
+    freeze_base: false
+    unfreeze_from: -20  # Unfreeze last 20 layers
+
+  optimizer:
+    name: "adam"
+    weight_decay: 0.0001
+    beta_1: 0.9
+    beta_2: 0.999
+
+  loss: "categorical_crossentropy"
+  
+  class_weights:
+    enabled: true
+    method: "inverse_frequency"  # Options: inverse_frequency, effective_samples
+
+  callbacks:
+    early_stopping:
+      enabled: true
+      monitor: "val_loss"
+      patience: 7
+      restore_best_weights: true
+    
+    reduce_lr:
+      enabled: true
+      monitor: "val_loss"
+      factor: 0.5
+      patience: 3
+      min_lr: 0.000001
+    
+    model_checkpoint:
+      enabled: true
+      monitor: "val_loss"
+      save_best_only: true
+      save_weights_only: false
+    
+    tensorboard:
+      enabled: true
+      log_dir: "logs/tensorboard"
+
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1_score
+    - auc_roc
+  
+  visualization:
+    confusion_matrix: true
+    roc_curves: true
+    precision_recall_curves: true
+    gradcam: true
+
+export:
+  formats:
+    - saved_model
+    - h5
+    - tflite  # For mobile deployment
+  quantization:
+    enabled: false
+    method: "dynamic"  # Options: dynamic, float16, int8

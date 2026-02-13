@@ -1,0 +1,330 @@
+# Data Configuration
+# Skin Disease Detection Project
+
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  augmented_dir: "data/augmented"
+
+image:
+  input_size: [224, 224]
+  channels: 3
+  format: "RGB"
+
+split:
+  train_ratio: 0.80
+  val_ratio: 0.10
+  test_ratio: 0.10
+  random_seed: 42
+  stratified: true
+
+augmentation:
+  enabled: true
+  train_only: true
+  transforms:
+    horizontal_flip: true
+    vertical_flip: true
+    rotation_limit: 20
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+    blur_limit: 3
+    coarse_dropout:
+      max_holes: 8
+      max_height: 16
+      max_width: 16
+
+normalization:
+  method: "imagenet"  # Options: imagenet, minmax, standard
+  imagenet_mean: [0.485, 0.456, 0.406]
+  imagenet_std: [0.229, 0.224, 0.225]
+
+dataloader:
+  batch_size: 32
+  shuffle: true
+  prefetch: true
+  cache: true
+  num_parallel_calls: -1  # AUTOTUNE
+
+# ============================================================================
+# COMPREHENSIVE CLASS DEFINITIONS
+# ============================================================================
+
+classes:
+  # -------------------------------------------------------------------------
+  # CATEGORY 1: SKIN CANCER & PRE-CANCER (Core - 8 classes)
+  # Dataset: ISIC 2019
+  # -------------------------------------------------------------------------
+  - name: "Melanoma"
+    code: "MEL"
+    category: "cancer"
+    severity: "critical"
+    priority: "core"
+    urgency: "immediate"
+    
+  - name: "Basal Cell Carcinoma"
+    code: "BCC"
+    category: "cancer"
+    severity: "high"
+    priority: "core"
+    urgency: "within_2_weeks"
+    
+  - name: "Squamous Cell Carcinoma"
+    code: "SCC"
+    category: "cancer"
+    severity: "high"
+    priority: "core"
+    urgency: "within_1_week"
+    
+  - name: "Actinic Keratosis"
+    code: "AK"
+    category: "precancer"
+    severity: "medium"
+    priority: "core"
+    urgency: "within_1_month"
+    
+  - name: "Melanocytic Nevus"
+    code: "NV"
+    category: "benign"
+    severity: "low"
+    priority: "core"
+    urgency: "routine"
+    
+  - name: "Benign Keratosis"
+    code: "BKL"
+    category: "benign"
+    severity: "low"
+    priority: "core"
+    urgency: "none"
+    
+  - name: "Dermatofibroma"
+    code: "DF"
+    category: "benign"
+    severity: "low"
+    priority: "core"
+    urgency: "none"
+    
+  - name: "Vascular Lesion"
+    code: "VASC"
+    category: "benign"
+    severity: "low"
+    priority: "core"
+    urgency: "routine"
+
+  # -------------------------------------------------------------------------
+  # CATEGORY 2: INFLAMMATORY CONDITIONS (Extended - 7 classes)
+  # Dataset: ACNE04, Fitzpatrick17k, DermNet
+  # -------------------------------------------------------------------------
+  - name: "Acne - Mild"
+    code: "ACNE_1"
+    category: "inflammatory"
+    severity: "low"
+    priority: "extended"
+    urgency: "none"
+    
+  - name: "Acne - Moderate"
+    code: "ACNE_2"
+    category: "inflammatory"
+    severity: "medium"
+    priority: "extended"
+    urgency: "within_1_month"
+    
+  - name: "Acne - Severe"
+    code: "ACNE_3"
+    category: "inflammatory"
+    severity: "high"
+    priority: "extended"
+    urgency: "within_2_weeks"
+    
+  - name: "Eczema"
+    code: "ECZEMA"
+    category: "inflammatory"
+    severity: "medium"
+    priority: "extended"
+    urgency: "within_1_month"
+    
+  - name: "Psoriasis"
+    code: "PSORIASIS"
+    category: "inflammatory"
+    severity: "medium"
+    priority: "extended"
+    urgency: "within_1_month"
+    
+  - name: "Rosacea"
+    code: "ROSACEA"
+    category: "inflammatory"
+    severity: "low"
+    priority: "extended"
+    urgency: "routine"
+    
+  - name: "Seborrheic Dermatitis"
+    code: "SEB_DERM"
+    category: "inflammatory"
+    severity: "low"
+    priority: "extended"
+    urgency: "none"
+
+  # -------------------------------------------------------------------------
+  # CATEGORY 3: INFECTIOUS DISEASES (Extended - 7 classes)
+  # Dataset: Fitzpatrick17k, DermNet
+  # -------------------------------------------------------------------------
+  - name: "Ringworm"
+    code: "TINEA"
+    category: "infectious_fungal"
+    severity: "low"
+    priority: "extended"
+    urgency: "within_1_month"
+    
+  - name: "Tinea Versicolor"
+    code: "TINEA_V"
+    category: "infectious_fungal"
+    severity: "low"
+    priority: "extended"
+    urgency: "none"
+    
+  - name: "Warts"
+    code: "WARTS"
+    category: "infectious_viral"
+    severity: "low"
+    priority: "extended"
+    urgency: "routine"
+    
+  - name: "Herpes Simplex"
+    code: "HERPES"
+    category: "infectious_viral"
+    severity: "medium"
+    priority: "extended"
+    urgency: "within_1_week"
+    
+  - name: "Impetigo"
+    code: "IMPETIGO"
+    category: "infectious_bacterial"
+    severity: "medium"
+    priority: "extended"
+    urgency: "within_1_week"
+    
+  - name: "Cellulitis"
+    code: "CELLULITIS"
+    category: "infectious_bacterial"
+    severity: "high"
+    priority: "extended"
+    urgency: "immediate"
+    
+  - name: "Scabies"
+    code: "SCABIES"
+    category: "infectious_parasitic"
+    severity: "medium"
+    priority: "extended"
+    urgency: "within_1_week"
+
+  # -------------------------------------------------------------------------
+  # CATEGORY 4: PIGMENTATION DISORDERS (Extended - 4 classes)
+  # Dataset: Fitzpatrick17k, DermNet
+  # -------------------------------------------------------------------------
+  - name: "Vitiligo"
+    code: "VITILIGO"
+    category: "pigmentation"
+    severity: "low"
+    priority: "extended"
+    urgency: "routine"
+    
+  - name: "Melasma"
+    code: "MELASMA"
+    category: "pigmentation"
+    severity: "low"
+    priority: "extended"
+    urgency: "none"
+    
+  - name: "Post-inflammatory Hyperpigmentation"
+    code: "PIH"
+    category: "pigmentation"
+    severity: "low"
+    priority: "extended"
+    urgency: "none"
+    
+  - name: "Lentigines"
+    code: "LENTIGO"
+    category: "pigmentation"
+    severity: "low"
+    priority: "extended"
+    urgency: "none"
+
+  # -------------------------------------------------------------------------
+  # CATEGORY 5: AUTOIMMUNE & OTHER (Advanced - 4 classes)
+  # Dataset: DermNet
+  # -------------------------------------------------------------------------
+  - name: "Lupus Discoid"
+    code: "LUPUS"
+    category: "autoimmune"
+    severity: "high"
+    priority: "advanced"
+    urgency: "within_1_week"
+    
+  - name: "Lichen Planus"
+    code: "LICHEN"
+    category: "autoimmune"
+    severity: "medium"
+    priority: "advanced"
+    urgency: "within_1_month"
+    
+  - name: "Alopecia Areata"
+    code: "ALOPECIA"
+    category: "hair"
+    severity: "medium"
+    priority: "advanced"
+    urgency: "within_1_month"
+    
+  - name: "Keloid Scar"
+    code: "KELOID"
+    category: "wound"
+    severity: "low"
+    priority: "advanced"
+    urgency: "routine"
+
+# ============================================================================
+# SKIN TYPE CLASSIFICATION (Fitzpatrick Scale)
+# ============================================================================
+
+skin_types:
+  - type: "I"
+    description: "Very fair skin, always burns, never tans"
+    characteristics: ["Pale white", "Freckles common", "Blue/green eyes"]
+    
+  - type: "II"
+    description: "Fair skin, usually burns, tans minimally"
+    characteristics: ["White", "Fair", "Light eyes/hair"]
+    
+  - type: "III"
+    description: "Medium skin, sometimes burns, tans uniformly"
+    characteristics: ["Cream white", "Fair with any eye/hair color"]
+    
+  - type: "IV"
+    description: "Olive skin, rarely burns, tans easily"
+    characteristics: ["Moderate brown", "Mediterranean/Asian"]
+    
+  - type: "V"
+    description: "Brown skin, very rarely burns, tans very easily"
+    characteristics: ["Dark brown", "Middle Eastern/South Asian/Latino"]
+    
+  - type: "VI"
+    description: "Dark brown/black skin, never burns"
+    characteristics: ["Deeply pigmented dark brown to black"]
+
+# ============================================================================
+# MODEL CONFIGURATION BY SCOPE
+# ============================================================================
+
+model_scope:
+  core:
+    num_classes: 8
+    description: "Cancer & lesion detection (ISIC 2019)"
+    target_accuracy: 0.93
+    
+  extended:
+    num_classes: 30
+    description: "Comprehensive dermatology (all categories)"
+    target_accuracy: 0.85
+    
+  skin_type:
+    num_classes: 6
+    description: "Fitzpatrick skin type classification"
+    target_accuracy: 0.90

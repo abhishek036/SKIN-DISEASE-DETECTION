@@ -1,0 +1,3 @@
+Dataset,Images,Classes,Majority,Majority_Count,Minority,Minority_Count
+ISIC 2019,25331,9,NV,12875,DF,239
+HAM10000,10015,7,nv,6705,df,115
